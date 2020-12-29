@@ -1,0 +1,48 @@
+#
+# ServerAdmin: Your address, where problems with the server should be
+# e-mailed.  This address appears on some server-generated pages, such
+# as error documents.  e.g. admin@your-domain.com
+#
+ServerAdmin {{ admin_email }}
+
+#
+# ServerName gives the name and port that the server uses to identify itself.
+# This can often be determined automatically, but we recommend you specify
+# it explicitly to prevent problems during startup.
+#
+# If your host doesn't have a registered DNS name, enter its IP address here.
+#
+
+# generated 2020-12-26, Mozilla Guideline v5.6, Apache 2.4.37, OpenSSL 1.1.1g, modern configuration
+# https://ssl-config.mozilla.org/#server=apache&version=2.4.37&config=modern&openssl=1.1.1g&guideline=5.6
+
+# this configuration requires mod_ssl, mod_socache_shmcb, mod_rewrite, and mod_headers
+<VirtualHost *:80>
+    ServerName {{ hostname }}
+
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName {{ hostname }}
+
+    SSLEngine on
+    SSLCertificateFile      /etc/pki/tls/certs/{{ hostname }}.cer
+    SSLCertificateKeyFile   /etc/pki/tls/private/{{ hostname }}.pem
+
+    # enable HTTP/2, if available
+    Protocols h2 http/1.1
+
+    # HTTP Strict Transport Security (mod_headers is required) (63072000 seconds)
+    Header always set Strict-Transport-Security "max-age=63072000"
+
+</VirtualHost>
+
+# modern configuration
+SSLProtocol             all -SSLv3 -TLSv1 -TLSv1.1 -TLSv1.2
+SSLHonorCipherOrder     off
+SSLSessionTickets       off
+
+SSLUseStapling On
+SSLStaplingCache "shmcb:logs/ssl_stapling(32768)"

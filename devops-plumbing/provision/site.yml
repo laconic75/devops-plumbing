@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - group_vars/wordpress.vault.yml
+
+  roles: 
+    - { role: general, tags: ['general'] }
+    - { role: httpd_php, tags: ['proxy'] }
+    - { role: wordpress, tags: ['application'] }

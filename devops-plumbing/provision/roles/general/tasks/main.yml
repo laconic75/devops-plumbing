@@ -1,0 +1,58 @@
+---
+- name: Set a hostname
+  hostname:
+    name: "{{ hostname }}"
+  tags:
+    - hostname 
+
+- name: Install EPEL repository
+  yum:
+    name: epel-release
+    state: present
+  tags:
+    - package_install
+
+- name: Update all packages
+  yum:
+    name: '*'
+    state: latest
+  tags:
+    - package_install
+    - updates
+
+- name: Set timezone to US/Central
+  community.general.timezone:
+    name: US/Central
+  tags:
+    - time
+    - timezone
+
+- name: Install vim
+  yum:
+    name: vim
+    state: present
+  tags:
+    - package_install
+    - utils
+
+- name: Install firewalld
+  yum:
+    name: firewalld
+    state: present
+  tags:
+    - package_install
+    - firewall
+
+# We're actually currently using the default settings.
+# Setting ciphers to the highest level is breaking the connection to epel.
+# Hopefully this will be fixed in the future and we can set the config settings
+# to FUTURE
+- name: Harden Ciphers
+  copy: 
+    src: crypto_config
+    dest: /etc/crypto-policies/config
+  notify: 
+    - configure security policies
+    - restart secure services
+  tags:
+    - hardening

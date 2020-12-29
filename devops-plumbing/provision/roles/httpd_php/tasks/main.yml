@@ -1,0 +1,72 @@
+---
+- name: Install Apache
+  yum: 
+    name:
+      - httpd
+      - httpd-tools
+      - httpd-manual
+      - mod_ssl
+    state: latest
+  tags: 
+    - package_install
+    - apache
+
+- name: Allow Apache to have network connections 
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+  tags: 
+    - apache
+
+- name: Upload https reverse proxy configuration
+  template:
+    src: php_application.j2
+    dest: /etc/httpd/conf.d/php_application.conf
+  tags: 
+    - apache
+  notify:
+    - restart httpd
+
+
+- name: Upload https certificate 
+  copy: 
+    src: "{{ key_path | default(omit) }}{{ hostname }}.cer"
+    dest: "/etc/pki/tls/certs/{{ hostname }}.cer"
+  tags: 
+    - apache
+    - ssl
+  notify:
+    - restart httpd
+
+- name: Upload https private key
+  copy: 
+    src: "{{ key_path | default(omit) }}{{ hostname }}.pem"
+    dest: "/etc/pki/tls/private/{{ hostname }}.pem"
+  tags: 
+    - apache
+    - ssl
+  notify:
+    - restart httpd
+
+- name: Open firewall https ports
+  ansible.posix.firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+  tags: 
+    - apache
+    - firewall
+  notify:
+    - restart firewalld 
+
+- name: Open firewall http ports
+  ansible.posix.firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+  tags: 
+    - apache
+    - firewall
+  notify:
+    - restart firewalld 

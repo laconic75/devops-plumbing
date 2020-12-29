@@ -1,0 +1,7 @@
+*.out
+**/.terraform/*
+sql_string
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+

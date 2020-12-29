@@ -1,0 +1,3 @@
+hostname: www.devops-plumbing.com
+key_path: ~/Documents/devops-plumbing/
+application_port: 8080

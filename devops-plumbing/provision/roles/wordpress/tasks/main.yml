@@ -1,0 +1,80 @@
+---
+# MySql Configuration
+- name: Install Maria DB Client
+  dnf:
+    name: 
+      - python3-mysqlclient
+    state: latest
+
+- name: Create MySql Database
+  community.mysql.mysql_db:
+    check_implicit_admin: yes
+    login_user: "{{ Admin_DB_USER }}"
+    login_password: "{{ Admin_DB_PASSWORD }}"
+    login_host: "{{ DB_HOST }}"
+    login_port: "{{ DB_PORT }}"
+    name: "{{ DB_NAME }}"
+    state: present
+- name: Create MySql Wordpress User
+  community.mysql.mysql_user:
+    check_implicit_admin: yes
+    host: '%'
+    login_user: "{{ Admin_DB_USER }}"
+    login_password: "{{ Admin_DB_PASSWORD }}"
+    login_host: "{{ DB_HOST }}"
+    login_port: "{{ DB_PORT }}"
+    name: "{{ DB_USER }}"
+    priv: "{{ DB_NAME }}.*:ALL"
+    password: "{{ DB_PASSWORD }}"
+    state: present
+
+# PHP Installation      
+- name: Set php AppStream to 7.4
+  dnf:
+    name: "@php:7.4"
+    state: present
+
+- name: Install php
+  dnf:
+    name:
+      - php
+      - php-mysqlnd
+      - php-gd
+    state: latest
+  notify: 
+    - restart httpd
+
+# Wordpress Installation and configuration
+- name: Download latest Wordpress tar.gz
+  get_url:
+    url: https://wordpress.org/latest.tar.gz 
+    dest: "{{ ansible_env.HOME }}/wordpress-latest.tar.gz"
+
+- name: Unzip Wordpress to /var/www/html/
+  unarchive:
+    src:  "{{ ansible_env.HOME }}/wordpress-latest.tar.gz"
+    dest: /var/www/html/
+    remote_src: yes
+    extra_opts: --strip-components=1
+    creates: /var/www/html/wp-config-sample.php
+  notify: 
+    - restart httpd
+
+- name: Upload database ssl certificate
+  copy:
+    src: db-ca-certificate.crt
+    dest: /etc/pki/tls/certs/db-ca-certificate.crt
+
+- name: Update WordPress to allow ssl database connections
+  copy:
+    src: wp-db.php
+    dest: /var/www/html/wp-includes/wp-db.php
+  notify: 
+    - restart httpd
+      
+- name: Upload WordPress configuration
+  template:
+    src: wp-config.php.j2
+    dest: /var/www/html/wp-config.php
+  notify: 
+    - restart httpd
