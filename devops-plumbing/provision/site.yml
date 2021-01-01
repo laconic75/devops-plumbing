@@ -5,6 +5,6 @@
     - group_vars/wordpress.vault.yml
 
   roles: 
-    - { role: general, tags: ['general'] }
-    - { role: httpd_php, tags: ['proxy'] }
+    - { role: general-testing, tags: ['general'] }
+    #     - { role: httpd_php, tags: ['proxy'] }
     - { role: wordpress, tags: ['application'] }

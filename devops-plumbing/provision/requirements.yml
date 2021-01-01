@@ -1,0 +1,10 @@
+---
+roles:
+  - name: general-testing 
+    src: git@github.com:laconic75/ansible-centos8-general.git
+    scm: git
+    version: develop
+  - name: wordpress
+    src: git@github.com:laconic75/ansible-centos8-wordpress.git
+    scm: git
+    version: master
